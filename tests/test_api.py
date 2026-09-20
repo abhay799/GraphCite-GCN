@@ -1,5 +1,4 @@
 import ast
-import json
 from pathlib import Path
 import tomllib
 
@@ -12,10 +11,8 @@ import main
 client = TestClient(main.app)
 
 
-def test_vercel_entrypoint_reexports_existing_app():
-    from api.index import app as vercel_app
-
-    assert vercel_app is main.app
+def test_root_fastapi_entrypoint_exports_app():
+    assert main.app.title == "GraphCite GCN"
 
 
 def test_runtime_paths_are_absolute_module_relative():
@@ -65,16 +62,11 @@ def test_production_inference_source_avoids_heavy_runtime_imports():
     )
 
 
-def test_vercel_configuration_routes_root_requests_and_includes_runtime_assets():
-    config_path = Path(main.__file__).resolve().parent / "vercel.json"
-    config = json.loads(config_path.read_text(encoding="utf-8"))
+def test_vercel_uses_root_fastapi_detection_without_legacy_configuration():
+    root = Path(main.__file__).resolve().parent
 
-    assert config["rewrites"] == [
-        {"source": "/(.*)", "destination": "/api/index.py"}
-    ]
-    assert config["functions"]["api/index.py"]["includeFiles"] == (
-        "{simple_gcn_cora.onnx,simple_gcn_cora.onnx.data,runtime/cora_graph.npz,static/**}"
-    )
+    assert not (root / "vercel.json").exists()
+    assert not (root / "api" / "index.py").exists()
 
 
 def test_vercelignore_excludes_local_only_files():
@@ -91,6 +83,12 @@ def test_vercelignore_excludes_local_only_files():
         "scripts/",
         "cora_citation_network_classification_(1).ipynb",
     }.issubset(ignored)
+    assert {
+        "simple_gcn_cora.onnx",
+        "simple_gcn_cora.onnx.data",
+        "runtime/",
+        "static/",
+    }.isdisjoint(ignored)
 
 
 def test_root_requirements_are_limited_to_vercel_runtime_dependencies():
@@ -130,6 +128,7 @@ def test_pyproject_pins_vercel_to_python_313():
     metadata = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))
 
     assert metadata["project"]["requires-python"] == ">=3.13,<3.14"
+    assert set(metadata["project"]) == {"name", "version", "requires-python"}
 
 
 def test_health():

@@ -66,7 +66,7 @@ The Streamlit app defaults to `http://127.0.0.1:8000`. Override it with the `COR
 
 ## Deploy on Vercel
 
-The Vercel entrypoint at `api/index.py` reuses the existing FastAPI application. `vercel.json` routes root-level requests to that application and explicitly packages the ONNX model, its companion data file, the pre-exported Cora graph, and the static frontend. Root `requirements.txt` is intentionally the lightweight Vercel runtime dependency set; use `requirements-dev.txt` for local development.
+Vercel detects the root FastAPI application in `main.py` with no custom routing configuration. Root `requirements.txt` is intentionally the lightweight Vercel runtime dependency set; use `requirements-dev.txt` for local development. The model, companion data file, pre-exported Cora graph, and static frontend are not excluded by `.vercelignore` and remain available at runtime.
 
 From this project directory:
 

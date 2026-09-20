@@ -2,7 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {
     "api/index.py": {
-      "includeFiles": "{simple_gcn_cora.onnx,simple_gcn_cora.onnx.data,data/**,static/**}"
+      "includeFiles": "{simple_gcn_cora.onnx,simple_gcn_cora.onnx.data,runtime/cora_graph.npz,static/**}"
     }
   },
   "rewrites": [

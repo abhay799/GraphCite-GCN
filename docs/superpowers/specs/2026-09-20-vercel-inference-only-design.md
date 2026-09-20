@@ -18,9 +18,9 @@ The checked-in development exporter is `scripts/export_cora_graph.py`. It is the
 
 ### Production dependencies
 
-Create `requirements-vercel.txt` containing only FastAPI, Uvicorn, ONNX Runtime, NumPy, and Pydantic. Keep `requirements.txt` as the full local-development dependency set, including Streamlit and PyTorch Geometric.
+Make root `requirements.txt` contain only FastAPI, Uvicorn, ONNX Runtime, NumPy, and Pydantic so Vercel uses the lightweight set through its normal Python dependency detection. Move the existing full local-development dependency set, including Streamlit and PyTorch Geometric, into `requirements-dev.txt` alongside test, training, and visualization packages.
 
-Vercel’s build configuration installs `requirements-vercel.txt`, and `vercel.json` explicitly includes `runtime/cora_graph.npz`, the two ONNX files, and `static/` in the Python function bundle.
+Add `pyproject.toml` with a Python 3.13 requirement. `vercel.json` explicitly includes `runtime/cora_graph.npz`, the two ONNX files, and `static/` in the Python function bundle.
 
 ### Inference behavior
 

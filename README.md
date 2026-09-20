@@ -40,7 +40,7 @@ From the project root on Windows PowerShell:
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 ```
 
 Start the API:
@@ -66,7 +66,7 @@ The Streamlit app defaults to `http://127.0.0.1:8000`. Override it with the `COR
 
 ## Deploy on Vercel
 
-The Vercel entrypoint at `api/index.py` reuses the existing FastAPI application. `vercel.json` routes root-level requests to that application and explicitly packages the ONNX model, its companion data file, the Cora dataset, and the static frontend.
+The Vercel entrypoint at `api/index.py` reuses the existing FastAPI application. `vercel.json` routes root-level requests to that application and explicitly packages the ONNX model, its companion data file, the pre-exported Cora graph, and the static frontend. Root `requirements.txt` is intentionally the lightweight Vercel runtime dependency set; use `requirements-dev.txt` for local development.
 
 From this project directory:
 

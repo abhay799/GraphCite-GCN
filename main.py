@@ -1,5 +1,6 @@
 """FastAPI inference service for the Cora SimpleGCN ONNX model."""
 
+from functools import lru_cache
 from pathlib import Path
 from typing import List, Optional
 
@@ -23,7 +24,7 @@ CORA_CLASSES = {
 FEATURE_DIM = 1433
 BASE_DIR = Path(__file__).resolve().parent
 MODEL_PATH = BASE_DIR / "simple_gcn_cora.onnx"
-DATA_DIR = BASE_DIR / "data" / "Planetoid"
+RUNTIME_GRAPH_PATH = BASE_DIR / "runtime" / "cora_graph.npz"
 STATIC_DIR = BASE_DIR / "static"
 
 if not MODEL_PATH.exists():
@@ -89,14 +90,14 @@ def run_model(
     }
 
 
-def _load_cora_graph():
-    """Load the local Cora graph. The processed dataset is bundled with this project."""
-    from torch_geometric.datasets import Planetoid
-
+@lru_cache(maxsize=1)
+def _load_cora_graph() -> tuple[np.ndarray, np.ndarray]:
+    """Load the pre-exported Cora graph used by the ONNX inference service."""
     try:
-        return Planetoid(root=str(DATA_DIR), name="Cora")[0]
-    except Exception as error:  # pragma: no cover - converted into API error below
-        raise HTTPException(500, f"Failed to load Cora dataset: {error}") from error
+        with np.load(RUNTIME_GRAPH_PATH, allow_pickle=False) as graph:
+            return graph["node_features"], graph["edge_indices"]
+    except (OSError, KeyError, ValueError) as error:  # pragma: no cover - API error below
+        raise HTTPException(500, f"Failed to load Cora runtime graph: {error}") from error
 
 
 def _neighbors_for_node(edge_index: np.ndarray, node_index: int) -> List[int]:
@@ -173,8 +174,8 @@ def predict_custom_graph(request: GraphPredictRequest):
 
 @app.post("/predict/cora_node")
 def predict_real_cora_nodes(request: CoraNodeRequest):
-    cora_graph = _load_cora_graph()
-    largest_valid_index = cora_graph.num_nodes - 1
+    node_features, edge_index = _load_cora_graph()
+    largest_valid_index = node_features.shape[0] - 1
 
     invalid_indices = [
         i for i in request.node_indices if i < 0 or i > largest_valid_index
@@ -185,8 +186,7 @@ def predict_real_cora_nodes(request: CoraNodeRequest):
             f"node_indices out of bounds: {invalid_indices}. Valid range is 0 to {largest_valid_index}.",
         )
 
-    edge_index = cora_graph.edge_index.numpy()
-    response = run_model(cora_graph.x.numpy(), edge_index, request.node_indices)
+    response = run_model(node_features, edge_index, request.node_indices)
 
     for prediction in response["predictions"]:
         neighbors = _neighbors_for_node(edge_index, prediction["node_index"])

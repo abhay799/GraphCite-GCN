@@ -1,0 +1,18 @@
+{
+  "functions": {
+    "api/index.py": {
+      "includeFiles": [
+        "simple_gcn_cora.onnx",
+        "simple_gcn_cora.onnx.data",
+        "data/**",
+        "static/**"
+      ]
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/api/index"
+    }
+  ]
+}

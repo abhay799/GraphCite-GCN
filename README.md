@@ -64,6 +64,23 @@ streamlit run streamlit_app.py
 
 The Streamlit app defaults to `http://127.0.0.1:8000`. Override it with the `CORA_API_BASE_URL` environment variable if needed.
 
+## Deploy on Vercel
+
+The Vercel entrypoint at `api/index.py` reuses the existing FastAPI application. `vercel.json` routes root-level requests to that application and explicitly packages the ONNX model, its companion data file, the Cora dataset, and the static frontend.
+
+From this project directory:
+
+```powershell
+npm install --global vercel
+vercel login
+vercel
+vercel --prod
+```
+
+Use a recent Vercel CLI (version 48.1.8 or later). The first `vercel` command creates a preview deployment; verify `/`, `/health`, `/info`, `/docs`, and `/openapi.json` before running `vercel --prod`.
+
+The deployment includes ONNX Runtime, PyTorch, PyTorch Geometric, the model files, and the bundled Cora dataset. Those runtime dependencies increase function bundle size and cold-start time compared with a lightweight HTTP API.
+
 ## API examples
 
 ### Predict real Cora nodes

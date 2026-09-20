@@ -1,6 +1,6 @@
 """FastAPI inference service for the Cora SimpleGCN ONNX model."""
 
-import os
+from pathlib import Path
 from typing import List, Optional
 
 import numpy as np
@@ -21,15 +21,15 @@ CORA_CLASSES = {
 }
 
 FEATURE_DIM = 1433
-BASE_DIR = os.path.dirname(__file__)
-MODEL_PATH = os.path.join(BASE_DIR, "simple_gcn_cora.onnx")
-DATA_DIR = os.path.join(BASE_DIR, "data", "Planetoid")
-STATIC_DIR = os.path.join(BASE_DIR, "static")
+BASE_DIR = Path(__file__).resolve().parent
+MODEL_PATH = BASE_DIR / "simple_gcn_cora.onnx"
+DATA_DIR = BASE_DIR / "data" / "Planetoid"
+STATIC_DIR = BASE_DIR / "static"
 
-if not os.path.exists(MODEL_PATH):
+if not MODEL_PATH.exists():
     raise RuntimeError(f"ONNX model not found: {MODEL_PATH}")
 
-model_session = ort.InferenceSession(MODEL_PATH, providers=["CPUExecutionProvider"])
+model_session = ort.InferenceSession(str(MODEL_PATH), providers=["CPUExecutionProvider"])
 
 app = FastAPI(
     title="GraphCite GCN",
@@ -94,7 +94,7 @@ def _load_cora_graph():
     from torch_geometric.datasets import Planetoid
 
     try:
-        return Planetoid(root=DATA_DIR, name="Cora")[0]
+        return Planetoid(root=str(DATA_DIR), name="Cora")[0]
     except Exception as error:  # pragma: no cover - converted into API error below
         raise HTTPException(500, f"Failed to load Cora dataset: {error}") from error
 
@@ -111,8 +111,8 @@ def _neighbors_for_node(edge_index: np.ndarray, node_index: int) -> List[int]:
 
 @app.get("/")
 def home_page():
-    index_file = os.path.join(STATIC_DIR, "index.html")
-    if os.path.exists(index_file):
+    index_file = STATIC_DIR / "index.html"
+    if index_file.exists():
         return FileResponse(index_file)
     return {"service": "SimpleGCN Cora API", "status": "running"}
 
@@ -196,5 +196,5 @@ def predict_real_cora_nodes(request: CoraNodeRequest):
     return response
 
 
-if os.path.isdir(STATIC_DIR):
-    app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="static")
+if STATIC_DIR.is_dir():
+    app.mount("/", StaticFiles(directory=str(STATIC_DIR), html=True), name="static")

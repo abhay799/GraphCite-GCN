@@ -1,3 +1,6 @@
+import json
+from pathlib import Path
+
 import numpy as np
 import pytest
 from fastapi.testclient import TestClient
@@ -5,6 +8,49 @@ from fastapi.testclient import TestClient
 import main
 
 client = TestClient(main.app)
+
+
+def test_vercel_entrypoint_reexports_existing_app():
+    from api.index import app as vercel_app
+
+    assert vercel_app is main.app
+
+
+def test_runtime_paths_are_absolute_module_relative():
+    assert main.BASE_DIR.is_absolute()
+    assert main.MODEL_PATH == main.BASE_DIR / "simple_gcn_cora.onnx"
+    assert main.DATA_DIR == main.BASE_DIR / "data" / "Planetoid"
+    assert main.STATIC_DIR == main.BASE_DIR / "static"
+
+
+def test_vercel_configuration_routes_root_requests_and_includes_runtime_assets():
+    config_path = Path(main.__file__).resolve().parent / "vercel.json"
+    config = json.loads(config_path.read_text(encoding="utf-8"))
+
+    assert config["rewrites"] == [
+        {"source": "/(.*)", "destination": "/api/index"}
+    ]
+    included = config["functions"]["api/index.py"]["includeFiles"]
+    assert set(included) == {
+        "simple_gcn_cora.onnx",
+        "simple_gcn_cora.onnx.data",
+        "data/**",
+        "static/**",
+    }
+
+
+def test_vercelignore_excludes_local_only_files():
+    ignore_path = Path(main.__file__).resolve().parent / ".vercelignore"
+    ignored = set(ignore_path.read_text(encoding="utf-8").splitlines())
+
+    assert {
+        ".venv/",
+        "__pycache__/",
+        ".pytest_cache/",
+        ".git/",
+        "tests/",
+        "cora_citation_network_classification_(1).ipynb",
+    }.issubset(ignored)
 
 
 def test_health():

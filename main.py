@@ -32,8 +32,8 @@ if not os.path.exists(MODEL_PATH):
 model_session = ort.InferenceSession(MODEL_PATH, providers=["CPUExecutionProvider"])
 
 app = FastAPI(
-    title="Cora GCN Predictor",
-    description="ONNX Graph Convolutional Network inference API for Cora node classification.",
+    title="GraphCite GCN",
+    description="Graph Neural Network API for research paper classification on the Cora citation network.",
     version="1.0.0",
 )
 

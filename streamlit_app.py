@@ -1,5 +1,5 @@
 """
-Cora GCN Explorer — Streamlit UI
+GraphCite GCN — Streamlit UI
 Talks to the FastAPI service (main.py) that serves the ONNX GCN model.
 
 Run with:
@@ -19,7 +19,7 @@ import pandas as pd
 # ----------------------------------------------------------------------------
 
 st.set_page_config(
-    page_title="Cora GCN Explorer",
+    page_title="GraphCite GCN",
     page_icon="◆",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -168,11 +168,8 @@ with st.sidebar:
 # ----------------------------------------------------------------------------
 
 st.markdown('<div class="eyebrow">◆ graph neural network · node classification</div>', unsafe_allow_html=True)
-st.title("Cora GCN Explorer")
-st.caption(
-    "Classify citation-network papers into one of seven research topics using a trained "
-    "graph convolutional network, served over ONNX Runtime."
-)
+st.title("GraphCite GCN")
+st.caption("Graph Neural Network for Citation Classification")
 st.write("")
 
 # ----------------------------------------------------------------------------
@@ -351,4 +348,4 @@ with tab_custom:
                         st.error(f"Request failed: {detail or exc}")
 
 st.markdown("---")
-st.caption(f"Cora GCN Explorer · talks to `{api_base}` · 7-class topic model over {FEATURE_DIM}-dim bag-of-words features")
+st.caption(f"GraphCite GCN · talks to `{api_base}` · 7-class topic model over {FEATURE_DIM}-dim bag-of-words features")

@@ -1,4 +1,6 @@
-# CORA GCN Predictor
+# GraphCite GCN
+
+Graph Neural Network for Citation Classification.
 
 An interactive Graph Convolutional Network (GCN) node-classification demo for the **Cora citation network**. The trained model is exported to ONNX and served through FastAPI, with both a browser UI and a Streamlit UI.
 
@@ -110,7 +112,7 @@ The test suite checks health/model metadata, real Cora inference, probability no
 This cleaned version fixes several issues from the downloaded implementation:
 
 - corrected `probabilites` → `probabilities` API contract
-- corrected `SimpeGCN` → `SimpleGCN`
+- uses the `SimpleGCN` architecture
 - added missing Streamlit/Pandas/Requests dependencies
 - added custom edge-index bounds checking
 - made the browser citation visualization use actual Cora 1-hop neighbors instead of simulated neighbors

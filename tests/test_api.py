@@ -128,7 +128,14 @@ def test_pyproject_pins_vercel_to_python_313():
     metadata = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))
 
     assert metadata["project"]["requires-python"] == ">=3.13,<3.14"
-    assert set(metadata["project"]) == {"name", "version", "requires-python"}
+    assert metadata["project"]["dependencies"] == [
+        "fastapi>=0.110.0",
+        "uvicorn>=0.30.0",
+        "onnxruntime>=1.18.0",
+        "numpy>=1.24.0",
+        "pydantic>=2.7.0",
+    ]
+    assert set(metadata["project"]) == {"name", "version", "requires-python", "dependencies"}
 
 
 def test_health():
